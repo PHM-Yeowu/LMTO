@@ -1,20 +1,19 @@
-# Structural topology optimization with a pretrained language model and a label-free corrector
+# A pretrained language model with a compliance-trained corrector as a surrogate for structural topology optimization
 
-Deep generative models trained on optimized designs produce structural topologies for minimum-compliance problems
-without iterations, and recent foundation models accept domains of any shape and resolution. However, their designs
-can leave a load without material or disconnected from the supports, and repairing them requires finite-element (FE)
-solves. To address this limitation, this paper proposes a surrogate whose backbone is a pretrained language model.
-Its generator reads the problem as text, point and image tokens and writes a draft as blocks of elements, starting
-at the supports and the loads. A corrector that starts from the weights of the generator reads this draft and
-corrects all of its blocks in one forward pass. It is trained on the compliance and the volume of its output
-without reference designs. A load disconnected from the supports raises this compliance, so the corrector learns
-to remove such failures without FE solves at test time.
+Deep learning surrogates for topology optimization generate optimized designs without repeated finite-element
+analyses. However, even a recent foundation model fails on many unseen problems, mostly by leaving a load without
+material or disconnected from the supports. To address this limitation, this paper proposes a generator based on a
+pretrained language model and a corrector that modifies its drafts. The generator takes the problem as text, point
+and image tokens and generates a draft as blocks of elements, starting at the supports and the loads. The corrector
+updates all blocks of the draft in one forward pass and is trained on the compliance and the volume of its output
+without reference designs. A load disconnected from the supports raises this compliance, so the corrector learns to
+remove such failures without finite-element solves at test time.
 
-On random OpenTO problems, the generator failed less often than Optimize Any Topology with material added at the
-loads, and the corrector removed most remaining failures. On finite-strain problems, Optimize Any Topology failed
-more often than the corrector, but it reached lower compliance errors on a benchmark whose support configurations
-occur in the training data. These results suggest that a pretrained language model can serve as the backbone of
-such a surrogate and that training on the compliance removes most failures of the generator.
+On test problems with random domains, supports and loads, the corrected designs failed on 0.2% of them, less than
+one hundredth of the failure rate of this foundation model. On problems with combinations of domains and loads
+absent from the training data, they failed on 6.5%, less than a fifth of its rate. These results suggest that a
+pretrained language model can be the backbone of such a surrogate and that a compliance-trained corrector reduces
+its failures even outside the training data.
 
 ![Overview of the generator, the corrector and the test pipeline](figures/overview.png)
 
@@ -128,8 +127,8 @@ lowest CE. With the weights above, the commands reproduce these values from the 
 | OpenTO-NL | Generator | 16.5 | -10.38 | 16.43 | 12.2 | -12.58 |
 | OpenTO-NL | Generator + corrector | 6.5 | -8.41 | 4.75 | 4.2 | -10.42 |
 
-The reference designs of OpenTO-NL minimize the compliance under finite strain, while the scores use the linear
-compliance, so CEs below zero occur.
+The reference designs of OpenTO-NL were optimized with a geometrically nonlinear FE model, while the scores use the
+linear compliance, so CEs below zero occur.
 
 The drafts depend on the random draws, on the batches (`--bs`, `--tokens` and `--seed` of `lmto.sample`) and on
 the GPU. With other batch settings or on another GPU, the values differ slightly from those above.
@@ -157,7 +156,7 @@ test.
 
 ```bibtex
 @article{hwang2026lmto,
-  title  = {Structural topology optimization with a pretrained language model and a label-free corrector},
+  title  = {A pretrained language model with a compliance-trained corrector as a surrogate for structural topology optimization},
   author = {Hwang, Mikyung and Choi, Minseok},
   year   = {2026}
 }
